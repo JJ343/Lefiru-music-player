@@ -1,0 +1,23 @@
+# IDE / local configuration
+*.iml
+.idea/
+local.properties
+
+# Gradle / build output
+.gradle/
+.kotlin/
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Build artifacts
+*.apk
+*.aab
+*.log
+*.err
+*.hprof
+
+# OS files
+.DS_Store
+Thumbs.db
