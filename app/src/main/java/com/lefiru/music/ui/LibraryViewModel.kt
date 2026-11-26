@@ -115,6 +115,11 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
                 if (speed != 1f) connection.setSpeed(speed)
             }
         }
+        viewModelScope.launch {
+            runCatching {
+                connection.setVolume(repository.playbackVolume.first())
+            }
+        }
     }
 
     fun onPermissionResult(granted: Boolean) {
@@ -222,6 +227,17 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
     fun setSpeed(speed: Float) {
         connection.setSpeed(speed)
         viewModelScope.launch { repository.savePlaybackSpeed(speed) }
+    }
+
+    /** App-level volume (0f..1f), applied on top of the phone's media volume. */
+    fun setVolume(volume: Float) {
+        connection.setVolume(volume)
+    }
+
+    /** Saves the current volume when the slider is released. */
+    fun persistVolume() {
+        val volume = playback.value.volume
+        viewModelScope.launch { repository.savePlaybackVolume(volume) }
     }
 
     // ---- Sleep timer ----

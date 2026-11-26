@@ -41,6 +41,8 @@ data class PlaybackState(
     val shuffle: Boolean = false,
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
     val speed: Float = 1f,
+    /** App volume, 0f..1f. The extra boost is applied on top by the equalizer. */
+    val volume: Float = 1f,
     val queueIds: List<Long> = emptyList(),
     val currentIndex: Int = 0,
     val error: String? = null,
@@ -76,6 +78,7 @@ class PlaybackConnection(private val context: Context) {
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var controller: MediaController? = null
     private var pendingAction: ((MediaController) -> Unit)? = null
+    private var pendingVolume: Float? = null
     private var ticker: Job? = null
 
     private val _state = MutableStateFlow(PlaybackState())
@@ -109,6 +112,9 @@ class PlaybackConnection(private val context: Context) {
                 _state.update { it.copy(connected = true, error = null) }
                 pendingAction?.invoke(connectedController)
                 pendingAction = null
+                // Keep the volume chosen in the app when the controller connects.
+                connectedController.volume = pendingVolume ?: _state.value.volume
+                pendingVolume = null
                 publish()
                 startTicker()
             },
@@ -146,6 +152,7 @@ class PlaybackConnection(private val context: Context) {
                 shuffle = player.shuffleModeEnabled,
                 repeatMode = player.repeatMode,
                 speed = player.playbackParameters.speed,
+                volume = player.volume,
                 queueIds = (0 until player.mediaItemCount).mapNotNull { index ->
                     player.getMediaItemAt(index).mediaId.toLongOrNull()
                 },
@@ -257,6 +264,18 @@ class PlaybackConnection(private val context: Context) {
 
     fun setSpeed(speed: Float) {
         withController { player -> player.setPlaybackSpeed(speed) }
+    }
+
+    /** Sets the app-level volume (0f..1f). */
+    fun setVolume(volume: Float) {
+        val value = volume.coerceIn(0f, 1f)
+        val player = controller
+        if (player != null) {
+            player.volume = value
+        } else {
+            pendingVolume = value
+        }
+        _state.update { it.copy(volume = value) }
     }
 
     fun release() {

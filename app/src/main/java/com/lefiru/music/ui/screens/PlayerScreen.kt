@@ -36,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -62,6 +63,7 @@ import com.lefiru.music.data.formatDuration
 import com.lefiru.music.playback.EqualizerController
 import com.lefiru.music.ui.LibraryViewModel
 import com.lefiru.music.ui.components.AlbumArt
+import kotlin.math.roundToInt
 
 private val speedOptions = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
 private val sleepTimerOptions = listOf(5, 10, 15, 30, 45, 60)
@@ -291,7 +293,32 @@ fun PlayerScreen(viewModel: LibraryViewModel, onClose: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Refuerzo de volumen",
+                        text = "Volumen",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = "${(playback.volume * 100).roundToInt()}%",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                Slider(
+                    value = playback.volume,
+                    onValueChange = viewModel::setVolume,
+                    onValueChangeFinished = viewModel::persistVolume,
+                    valueRange = 0f..1f,
+                    steps = 19,
+                )
+
+                Spacer(Modifier.height(20.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Refuerzo extra",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f),
@@ -299,7 +326,7 @@ fun PlayerScreen(viewModel: LibraryViewModel, onClose: () -> Unit) {
                     Text(
                         text = "${equalizer.volumeBoostPercent}%",
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.secondary,
                     )
                 }
                 Slider(
@@ -309,11 +336,10 @@ fun PlayerScreen(viewModel: LibraryViewModel, onClose: () -> Unit) {
                     valueRange = EqualizerController.MIN_VOLUME_PERCENT.toFloat()..
                         EqualizerController.MAX_VOLUME_PERCENT.toFloat(),
                     steps = 19,
-                )
-                Text(
-                    text = "100% es el volumen original; 200% lo duplica. En canciones ya muy fuertes puede saturar.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.secondary,
+                        activeTrackColor = MaterialTheme.colorScheme.secondary,
+                    ),
                 )
                 Spacer(Modifier.height(24.dp))
             }
@@ -365,12 +391,6 @@ fun SleepTimerSheet(
                 .padding(bottom = 32.dp),
         ) {
             Text("Temporizador", style = MaterialTheme.typography.titleLarge)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = "La musica se pausara automaticamente cuando termine la cuenta regresiva.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
 
             if (remainingMs != null) {
                 Spacer(Modifier.height(16.dp))
@@ -440,11 +460,6 @@ fun EqualizerSheet(
             ) {
                 Column(Modifier.weight(1f)) {
                     Text("Ecualizador", style = MaterialTheme.typography.titleLarge)
-                    Text(
-                        text = "Ajusta el sonido en tiempo real",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
                 }
                 Switch(checked = state.enabled, onCheckedChange = onEnabled)
             }

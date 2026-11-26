@@ -5,24 +5,39 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
+/**
+ * GitHub / VS Code inspired dark palette: a near-black canvas, neutral graphite
+ * surfaces and borders, and a blue accent. The teal secondary keeps a bit of
+ * Lefiru's original identity (and powers the splash glow).
+ */
 private val LefiruColors = darkColorScheme(
-    primary = Color(0xFFB39DFF),
-    onPrimary = Color(0xFF1B0F3A),
-    primaryContainer = Color(0xFF3B2A6B),
-    onPrimaryContainer = Color(0xFFE8DEFF),
-    secondary = Color(0xFF7FD8C4),
-    onSecondary = Color(0xFF04211B),
-    secondaryContainer = Color(0xFF1D443C),
-    onSecondaryContainer = Color(0xFFC2F3E7),
-    background = Color(0xFF0E0B14),
-    onBackground = Color(0xFFE9E4F2),
-    surface = Color(0xFF141020),
-    onSurface = Color(0xFFE9E4F2),
-    surfaceVariant = Color(0xFF231D33),
-    onSurfaceVariant = Color(0xFFB9B1CC),
-    surfaceContainer = Color(0xFF191428),
-    surfaceContainerHigh = Color(0xFF211A33),
-    outline = Color(0xFF5B5273),
+    primary = Color(0xFF58A6FF),
+    onPrimary = Color(0xFF0D1117),
+    primaryContainer = Color(0xFF1F3A5F),
+    onPrimaryContainer = Color(0xFFC9E3FF),
+    secondary = Color(0xFF39D2C0),
+    onSecondary = Color(0xFF00201C),
+    secondaryContainer = Color(0xFF0F3B36),
+    onSecondaryContainer = Color(0xFFB7F5EC),
+    tertiary = Color(0xFFC586C0),
+    onTertiary = Color(0xFF1A0F1A),
+    background = Color(0xFF010409),
+    onBackground = Color(0xFFE6EDF3),
+    surface = Color(0xFF0D1117),
+    onSurface = Color(0xFFE6EDF3),
+    surfaceVariant = Color(0xFF21262D),
+    onSurfaceVariant = Color(0xFF8B949E),
+    surfaceContainerLowest = Color(0xFF010409),
+    surfaceContainerLow = Color(0xFF0D1117),
+    surfaceContainer = Color(0xFF161B22),
+    surfaceContainerHigh = Color(0xFF1C2128),
+    surfaceContainerHighest = Color(0xFF21262D),
+    outline = Color(0xFF30363D),
+    outlineVariant = Color(0xFF21262D),
+    error = Color(0xFFF85149),
+    onError = Color(0xFF0D1117),
+    errorContainer = Color(0xFF67060C),
+    onErrorContainer = Color(0xFFFFDCD6),
 )
 
 @Composable

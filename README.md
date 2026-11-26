@@ -4,6 +4,8 @@ Local music player for Android, built with **Kotlin + Jetpack Compose + Media3 (
 
 ## Included features
 
+- Animated startup intro: the app icon appears above the "LeFiru" wordmark on a
+  GitHub-style dark background before the library appears (tap anywhere to skip it).
 - Local library read through MediaStore (songs, albums, artists).
 - Full player: play/pause, next/previous, progress bar, shuffle, and repeat.
 - Persistent mini player above the navigation bar.
@@ -15,7 +17,8 @@ Local music player for Android, built with **Kotlin + Jetpack Compose + Media3 (
   visible countdown in the player.
 - Standalone stopwatch ("Crono" tab): start, pause, resume, reset, and record laps
   with split times.
-- Volume boost from 100% to 200% in the player, persisted across sessions.
+- Two-stage volume: normal app volume (0–100%) plus an extra boost (100–200%)
+  in the player, both persisted across sessions.
 - Audio quality: native decoding of FLAC, ALAC, WAV, MP3, AAC, OGG, and Opus without
   re-encoding. The file plays exactly as stored on the phone.
 
@@ -88,6 +91,7 @@ app/src/main/java/com/lefiru/music/
     ├── theme/Theme.kt            # Colors and dark theme
     ├── components/Common.kt      # AlbumArt, SongRow, MiniPlayer
     └── screens/
+        ├── IntroSplash.kt        # Animated startup wordmark
         ├── LibraryTabs.kt        # Songs, albums, artists, playlists, favorites
         ├── PlaylistDetailScreen.kt # Playlist detail and reordering
         ├── PlayerScreen.kt       # Full-screen player + equalizer

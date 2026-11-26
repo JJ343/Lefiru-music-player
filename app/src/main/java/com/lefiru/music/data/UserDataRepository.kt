@@ -29,6 +29,7 @@ class UserDataRepository(context: Context) {
         val TRACK_ORDER = stringPreferencesKey("track_order")
         val PLAYLISTS = stringPreferencesKey("playlists")
         val SPEED = stringPreferencesKey("playback_speed")
+        val VOLUME = stringPreferencesKey("playback_volume")
         val EQ_ENABLED = stringPreferencesKey("eq_enabled")
         val EQ_BANDS = stringPreferencesKey("eq_bands")
         val EQ_BASS = stringPreferencesKey("eq_bass")
@@ -55,6 +56,11 @@ class UserDataRepository(context: Context) {
 
     val playbackSpeed: Flow<Float> = dataStore.data.map { prefs ->
         prefs[Keys.SPEED]?.toFloatOrNull() ?: 1f
+    }
+
+    /** App-level volume (0f..1f), independent of the phone's media volume. */
+    val playbackVolume: Flow<Float> = dataStore.data.map { prefs ->
+        (prefs[Keys.VOLUME]?.toFloatOrNull() ?: 1f).coerceIn(0f, 1f)
     }
 
     val equalizerSettings: Flow<EqualizerSettings> = dataStore.data.map { prefs ->
@@ -111,6 +117,10 @@ class UserDataRepository(context: Context) {
 
     suspend fun savePlaybackSpeed(speed: Float) {
         dataStore.edit { it[Keys.SPEED] = speed.toString() }
+    }
+
+    suspend fun savePlaybackVolume(volume: Float) {
+        dataStore.edit { it[Keys.VOLUME] = volume.coerceIn(0f, 1f).toString() }
     }
 
     suspend fun saveEqualizerSettings(settings: EqualizerSettings) {

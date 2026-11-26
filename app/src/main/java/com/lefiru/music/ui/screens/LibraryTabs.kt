@@ -86,16 +86,6 @@ fun SongsTab(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        if (reorderEnabled) {
-            Text(
-                text = "Manten presionada una cancion y arrastrala para cambiar el orden",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-            )
-        }
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
@@ -331,14 +321,6 @@ fun FavoritesTab(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = "Manten presionada una cancion y arrastrala para cambiar el orden",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-        )
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),

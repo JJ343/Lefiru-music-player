@@ -1,7 +1,6 @@
 package com.lefiru.music.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -137,51 +136,36 @@ fun StopwatchScreen(viewModel: LibraryViewModel) {
         Spacer(Modifier.height(24.dp))
         HorizontalDivider()
 
-        if (laps.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "Pulsa \"Vuelta\" mientras corre para guardar tiempos parciales.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        } else {
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                itemsIndexed(laps) { index, totalMs ->
-                    val previousTotal = if (index == 0) 0L else laps[index - 1]
-                    val splitMs = totalMs - previousTotal
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            itemsIndexed(laps) { index, totalMs ->
+                val previousTotal = if (index == 0) 0L else laps[index - 1]
+                val splitMs = totalMs - previousTotal
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Vuelta ${index + 1}",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Spacer(Modifier.weight(1f))
+                    Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "Vuelta ${index + 1}",
+                            text = formatStopwatch(splitMs),
+                            fontFamily = FontFamily.Monospace,
                             style = MaterialTheme.typography.bodyLarge,
                         )
-                        Spacer(Modifier.weight(1f))
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                text = formatStopwatch(splitMs),
-                                fontFamily = FontFamily.Monospace,
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                            Text(
-                                text = formatStopwatch(totalMs),
-                                fontFamily = FontFamily.Monospace,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                        Text(
+                            text = formatStopwatch(totalMs),
+                            fontFamily = FontFamily.Monospace,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
-                    HorizontalDivider()
                 }
+                HorizontalDivider()
             }
         }
     }
