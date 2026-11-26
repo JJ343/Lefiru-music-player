@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Minimalist LeFiru emblem: masked cat with antlers, crown and golden scarf.
-    Drawn in the 108dp adaptive-icon viewport, with the artwork inside the
-    66dp safe zone so it survives every launcher mask.
+    Minimal LeFiru emblem: a geometric cat head wearing the golden crown and
+    tattered yellow mantle of the King in Yellow. Drawn in the 108dp adaptive
+    icon viewport, with the artwork inside the safe zone so it survives every
+    launcher mask.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -10,111 +11,32 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Antlers -->
+    <!-- Tattered golden mantle: the King in Yellow's cloak -->
     <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FFB49A63"
-        android:strokeWidth="1.9"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M47,40 C44,35 42,30 39,25 C38.5,24 38,23.5 37.5,23 M43,34 C40,31.5 36.5,30.5 32,30.5 M40,28 C38.5,25.5 36.5,23.5 33.5,22" />
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FFB49A63"
-        android:strokeWidth="1.9"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M61,40 C64,35 66,30 69,25 C69.5,24 70,23.5 70.5,23 M65,34 C68,31.5 71.5,30.5 76,30.5 M68,28 C69.5,25.5 71.5,23.5 74.5,22" />
+        android:fillColor="#FFE9B93F"
+        android:pathData="M34,76 C44,82 64,82 74,76 L77,84 L70,82 L66,87 L60,83 L54,88 L48,83 L42,87 L38,82 L31,84 Z" />
 
-    <!-- Cat ears -->
+    <!-- Cat head: two ears, rounded cheeks and a soft chin -->
     <path
         android:fillColor="#FFF3EBDD"
-        android:strokeColor="#FF171320"
-        android:strokeWidth="2"
-        android:strokeLineJoin="round"
-        android:pathData="M38.5,43 C37,37 35,31 33.5,27 C39,29.5 45,33 48.5,38.5 Z" />
-    <path
-        android:fillColor="#FFF3EBDD"
-        android:strokeColor="#FF171320"
-        android:strokeWidth="2"
-        android:strokeLineJoin="round"
-        android:pathData="M69.5,43 C71,37 73,31 74.5,27 C69,29.5 63,33 59.5,38.5 Z" />
+        android:pathData="M33,29 L35,54 C36,70 43,81 54,81 C65,81 72,70 73,54 L75,29 L64,38 C60,35.5 48,35.5 44,38 Z" />
 
-    <!-- Mask -->
+    <!-- Eyes and nose -->
     <path
-        android:fillColor="#FFF3EBDD"
-        android:strokeColor="#FF171320"
-        android:strokeWidth="2.2"
-        android:strokeLineJoin="round"
-        android:pathData="M54,84 C46,81 38,74 35.5,63 C33.5,54 34.5,44 41,38.5 C45,35.5 49,35 54,35 C59,35 63,35.5 67,38.5 C73.5,44 74.5,54 72.5,63 C70,74 62,81 54,84 Z" />
+        android:fillColor="#FF171320"
+        android:pathData="M42.5,54 C45.5,51.5 49.5,51.5 52,54 C49.5,56.5 45.5,56.5 42.5,54 Z" />
+    <path
+        android:fillColor="#FF171320"
+        android:pathData="M65.5,54 C62.5,51.5 58.5,51.5 56,54 C58.5,56.5 62.5,56.5 65.5,54 Z" />
+    <path
+        android:fillColor="#FF171320"
+        android:pathData="M52.5,62 L55.5,62 L54,64.5 Z" />
 
-    <!-- Cracks -->
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FFC4B6A2"
-        android:strokeWidth="0.8"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M58.2,39.8 L56.8,43.2 L58.4,46.2 L57.4,48.8" />
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FFC4B6A2"
-        android:strokeWidth="0.7"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M39.8,60.8 L41.8,63.6 L41.1,66.6" />
-
-    <!-- Eyes, nose and mouth -->
-    <path
-        android:fillColor="#FF14111C"
-        android:pathData="M49.5,52.5 C46.5,51.5 42.5,52.5 40.5,55.5 C43.5,57.8 48,57.8 50.5,55.8 C51,55 50.5,53.2 49.5,52.5 Z" />
-    <path
-        android:fillColor="#FF14111C"
-        android:pathData="M58.5,52.5 C61.5,51.5 65.5,52.5 67.5,55.5 C64.5,57.8 60,57.8 57.5,55.8 C57,55 57.5,53.2 58.5,52.5 Z" />
-    <path
-        android:fillColor="#FF3A3040"
-        android:pathData="M52.6,61.5 L55.4,61.5 L54,64 Z" />
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FF3A3040"
-        android:strokeWidth="0.9"
-        android:strokeLineCap="round"
-        android:pathData="M51.6,68.3 L56.4,68.3" />
-
-    <!-- Crown -->
+    <!-- Three-point crown -->
     <path
         android:fillColor="#FFE9B93F"
-        android:strokeColor="#FF171320"
-        android:strokeWidth="1.6"
-        android:strokeLineJoin="round"
-        android:pathData="M46.5,38.5 L44.5,26 L50,30.5 L54,21.5 L58,30.5 L63.5,26 L61.5,38.5 Z" />
+        android:pathData="M42,36 L42,26 L48,32 L54,21 L60,32 L66,26 L66,36 Z" />
     <path
         android:fillColor="#FFC4922A"
-        android:pathData="M46.9,36 L61.1,36 L61.5,38.5 L46.5,38.5 Z" />
-
-    <!-- Golden scarf -->
-    <path
-        android:fillColor="#FFE9B93F"
-        android:strokeColor="#FF171320"
-        android:strokeWidth="1.6"
-        android:strokeLineJoin="round"
-        android:pathData="M33.5,79.5 C32.5,81.5 31.5,83 30.5,85 C33.5,84 36,82.5 38,80 Z" />
-    <path
-        android:fillColor="#FFE9B93F"
-        android:strokeColor="#FF171320"
-        android:strokeWidth="1.6"
-        android:strokeLineJoin="round"
-        android:pathData="M74.5,79.5 C75.5,81.5 76.5,83 77.5,85 C74.5,84 72,82.5 70,80 Z" />
-    <path
-        android:fillColor="#FFE9B93F"
-        android:strokeColor="#FF171320"
-        android:strokeWidth="2"
-        android:strokeLineJoin="round"
-        android:pathData="M34,71.5 C39,77 46,80 54,80 C62,80 69,77 74,71.5 L77.5,78.5 C71,84.5 63,87 54,87 C45,87 37,84.5 30.5,78.5 Z" />
-    <path
-        android:fillColor="#FFC4922A"
-        android:pathData="M37.5,79.5 C43,83.5 48.5,85 54,85 C59.5,85 65,83.5 70.5,79.5 L69,82.3 C63.5,86 59,87 54,87 C49,87 44.5,86 39,82.3 Z" />
-    <path
-        android:fillColor="#FFC4922A"
-        android:pathData="M48.5,79.5 C51,82.5 57,82.5 59.5,79.5 L58,81.8 C55.8,83.2 52.2,83.2 50,81.8 Z" />
+        android:pathData="M42,34 L66,34 L66,36 L42,36 Z" />
 </vector>

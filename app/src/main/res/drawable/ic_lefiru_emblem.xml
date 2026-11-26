@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Standalone LeFiru emblem for in-app use (splash screen).
+    Same artwork as ic_launcher_foreground, but cropped to its own bounds so
+    Compose can paint it directly: adaptive-icon XML cannot be loaded with
+    painterResource.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="52dp"
+    android:height="73dp"
+    android:viewportWidth="52"
+    android:viewportHeight="73">
+
+    <group
+        android:translateX="-28"
+        android:translateY="-18">
+
+        <!-- Tattered golden mantle: the King in Yellow's cloak -->
+        <path
+            android:fillColor="#FFE9B93F"
+            android:pathData="M34,76 C44,82 64,82 74,76 L77,84 L70,82 L66,87 L60,83 L54,88 L48,83 L42,87 L38,82 L31,84 Z" />
+
+        <!-- Cat head: two ears, rounded cheeks and a soft chin -->
+        <path
+            android:fillColor="#FFF3EBDD"
+            android:pathData="M33,29 L35,54 C36,70 43,81 54,81 C65,81 72,70 73,54 L75,29 L64,38 C60,35.5 48,35.5 44,38 Z" />
+
+        <!-- Eyes and nose -->
+        <path
+            android:fillColor="#FF171320"
+            android:pathData="M42.5,54 C45.5,51.5 49.5,51.5 52,54 C49.5,56.5 45.5,56.5 42.5,54 Z" />
+        <path
+            android:fillColor="#FF171320"
+            android:pathData="M65.5,54 C62.5,51.5 58.5,51.5 56,54 C58.5,56.5 62.5,56.5 65.5,54 Z" />
+        <path
+            android:fillColor="#FF171320"
+            android:pathData="M52.5,62 L55.5,62 L54,64.5 Z" />
+
+        <!-- Three-point crown -->
+        <path
+            android:fillColor="#FFE9B93F"
+            android:pathData="M42,36 L42,26 L48,32 L54,21 L60,32 L66,26 L66,36 Z" />
+        <path
+            android:fillColor="#FFC4922A"
+            android:pathData="M42,34 L66,34 L66,36 L42,36 Z" />
+    </group>
+</vector>
