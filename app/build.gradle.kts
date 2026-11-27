@@ -79,7 +79,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
 
     // Drag and drop in lists
-    implementation("sh.calvin.reorderable:reorderable:2.4.3")
+    implementation("sh.calvin.reorderable:reorderable:3.1.0")
 
     testImplementation("junit:junit:4.13.2")
 
