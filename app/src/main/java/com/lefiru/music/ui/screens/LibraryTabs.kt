@@ -40,6 +40,7 @@ import com.lefiru.music.data.Track
 import com.lefiru.music.ui.LibraryViewModel
 import com.lefiru.music.ui.components.AlbumArt
 import com.lefiru.music.ui.components.EmptyState
+import com.lefiru.music.ui.components.SelectAllRow
 import com.lefiru.music.ui.components.SongRow
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -52,6 +53,10 @@ fun SongsTab(
     query: String,
     currentTrackId: Long?,
     onAddToPlaylist: (Track) -> Unit,
+    selectedTrackIds: Set<Long>,
+    onTrackSelected: (Long) -> Unit,
+    onToggleSelectAll: (Set<Long>) -> Unit,
+    onDeleteTrack: (Track) -> Unit,
 ) {
     val filtered = remember(tracks, query) {
         if (query.isBlank()) {
@@ -86,6 +91,13 @@ fun SongsTab(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        if (selectedTrackIds.isNotEmpty()) {
+            SelectAllRow(
+                tracks = filtered,
+                selectedTrackIds = selectedTrackIds,
+                onToggleSelectAll = onToggleSelectAll,
+            )
+        }
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
@@ -113,10 +125,17 @@ fun SongsTab(
                                 onDragStopped = { viewModel.persistTrackOrder() },
                             ),
                         onClick = {
-                            viewModel.playTracks(filtered, filtered.indexOfFirst { it.id == track.id })
+                            if (selectedTrackIds.isNotEmpty()) {
+                                onTrackSelected(track.id)
+                            } else {
+                                viewModel.playTracks(filtered, filtered.indexOfFirst { it.id == track.id })
+                            }
                         },
                         onToggleFavorite = { viewModel.toggleFavorite(track.id) },
                         onAddToPlaylist = { onAddToPlaylist(track) },
+                        isSelected = track.id in selectedTrackIds,
+                        onToggleSelection = { onTrackSelected(track.id) },
+                        onDeleteTrack = { onDeleteTrack(track) },
                     )
                 }
             }
@@ -305,6 +324,10 @@ fun FavoritesTab(
     favoriteTracks: List<Track>,
     currentTrackId: Long?,
     onAddToPlaylist: (Track) -> Unit,
+    selectedTrackIds: Set<Long>,
+    onTrackSelected: (Long) -> Unit,
+    onToggleSelectAll: (Set<Long>) -> Unit,
+    onDeleteTrack: (Track) -> Unit,
 ) {
     if (favoriteTracks.isEmpty()) {
         EmptyState(
@@ -321,6 +344,13 @@ fun FavoritesTab(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        if (selectedTrackIds.isNotEmpty()) {
+            SelectAllRow(
+                tracks = favoriteTracks,
+                selectedTrackIds = selectedTrackIds,
+                onToggleSelectAll = onToggleSelectAll,
+            )
+        }
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
@@ -347,13 +377,20 @@ fun FavoritesTab(
                                 onDragStopped = { viewModel.persistFavoriteOrder() },
                             ),
                         onClick = {
-                            viewModel.playTracks(
-                                favoriteTracks,
-                                favoriteTracks.indexOfFirst { it.id == track.id },
-                            )
+                            if (selectedTrackIds.isNotEmpty()) {
+                                onTrackSelected(track.id)
+                            } else {
+                                viewModel.playTracks(
+                                    favoriteTracks,
+                                    favoriteTracks.indexOfFirst { it.id == track.id },
+                                )
+                            }
                         },
                         onToggleFavorite = { viewModel.toggleFavorite(track.id) },
                         onAddToPlaylist = { onAddToPlaylist(track) },
+                        isSelected = track.id in selectedTrackIds,
+                        onToggleSelection = { onTrackSelected(track.id) },
+                        onDeleteTrack = { onDeleteTrack(track) },
                     )
                 }
             }

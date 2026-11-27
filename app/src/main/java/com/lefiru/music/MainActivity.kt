@@ -52,16 +52,12 @@ class MainActivity : ComponentActivity() {
 
                 val viewModel: LibraryViewModel = viewModel()
 
-                // The intro plays on the first composition while the main screen
-                // is already built underneath, so revealing it is instantaneous.
                 var introVisible by rememberSaveable { mutableStateOf(true) }
-                var permissionRequested by rememberSaveable { mutableStateOf(false) }
 
-                // Ask for the audio permission only once the intro has finished,
-                // so the system dialog does not cover the animation.
+                // Ask for audio access once the intro has finished, so the
+                // system dialog does not cover the animation.
                 LaunchedEffect(introVisible, permissionGranted) {
-                    if (!introVisible && !permissionGranted && !permissionRequested) {
-                        permissionRequested = true
+                    if (!introVisible && !permissionGranted) {
                         launcher.launch(requiredPermissions())
                     }
                 }
@@ -83,20 +79,38 @@ class MainActivity : ComponentActivity() {
 }
 
 private fun requiredPermissions(): Array<String> =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        arrayOf(
+    when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> arrayOf(
             Manifest.permission.READ_MEDIA_AUDIO,
             Manifest.permission.POST_NOTIFICATIONS,
         )
-    } else {
-        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        // Android 10+ deletes media through the system consent dialog, so only
+        // read access is needed.
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> arrayOf(
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+        )
+        else -> arrayOf(
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        )
     }
 
 private fun hasAudioPermission(context: Context): Boolean {
-    val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    val readPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         Manifest.permission.READ_MEDIA_AUDIO
     } else {
         Manifest.permission.READ_EXTERNAL_STORAGE
     }
-    return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+    if (ContextCompat.checkSelfPermission(context, readPermission) != PackageManager.PERMISSION_GRANTED) {
+        return false
+    }
+    // Only Android 8-9 needs the write permission to delete files directly.
+    return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        ) == PackageManager.PERMISSION_GRANTED
+    } else {
+        true
+    }
 }

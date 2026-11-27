@@ -1,7 +1,12 @@
 package com.lefiru.music.ui
 
 import android.app.Application
+import android.app.RecoverableSecurityException
+import android.content.IntentSender
+import android.os.Build
 import android.os.SystemClock
+import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,6 +32,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Immutable
 data class LibraryState(
@@ -43,9 +50,13 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
 
     private val repository = UserDataRepository(application)
     private val connection = PlaybackConnection(application)
+    private val appContentResolver: android.content.ContentResolver = application.contentResolver
 
     private val _library = MutableStateFlow(LibraryState())
     val library: StateFlow<LibraryState> = _library.asStateFlow()
+
+    /** Identifies the latest library scan so older scans cannot overwrite it. */
+    private var refreshGeneration = 0
 
     val playback = connection.state
     /** Isolated playback position: the UI collects it separately from the rest of the state. */
@@ -130,18 +141,23 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun refresh() {
-        if (_library.value.loading) return
+    fun refresh(force: Boolean = false) {
+        if (_library.value.loading && !force) return
+        // Only the most recent scan may update the library. This prevents an
+        // older scan (started before a delete) from bringing deleted songs back.
+        val generation = ++refreshGeneration
         viewModelScope.launch {
             _library.update { it.copy(loading = true, error = null) }
-            val scanned = runCatching { MediaScanner.scan(getApplication()) }
-                .getOrElse { error ->
-                    _library.update {
-                        it.copy(loading = false, error = error.message ?: "Error leyendo la musica")
-                    }
-                    emptyList()
+            val result = runCatching { MediaScanner.scan(getApplication()) }
+            if (generation != refreshGeneration) return@launch
+            val scanned = result.getOrElse { error ->
+                _library.update {
+                    it.copy(loading = false, error = error.message ?: "Error leyendo la musica")
                 }
+                return@launch
+            }
             val savedOrder = runCatching { repository.trackOrder.first() }.getOrDefault(emptyList())
+            if (generation != refreshGeneration) return@launch
             val tracks = applyTrackOrder(scanned, savedOrder)
             _library.update {
                 it.copy(
@@ -330,6 +346,225 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
 
     fun deletePlaylist(playlistId: String) {
         viewModelScope.launch { repository.deletePlaylist(playlistId) }
+    }
+
+    // ---- Borrar canciones del dispositivo ----
+
+    /** Resultado de un borrado. La UI lo muestra una vez y llama a [consumeDeleteResult]. */
+    private val _deleteResult = MutableStateFlow<DeleteResult?>(null)
+    val deleteResult: StateFlow<DeleteResult?> = _deleteResult.asStateFlow()
+
+    /** Confirmacion del sistema que la UI debe lanzar antes de borrar los archivos. */
+    private val _deleteRequest = MutableStateFlow<DeleteRequest?>(null)
+    val deleteRequest: StateFlow<DeleteRequest?> = _deleteRequest.asStateFlow()
+
+    private var deleteRemaining: List<Track> = emptyList()
+    private val deletedTrackIds = mutableSetOf<Long>()
+    private var deleteTotal = 0
+    private var deleteDone = 0
+    private var deleteRunning = false
+
+    /** Elimina el archivo de audio del dispositivo. */
+    fun deleteTrack(track: Track) {
+        deleteTracks(listOf(track))
+    }
+
+    /** Elimina varios archivos de audio del dispositivo. */
+    fun deleteTracks(tracks: List<Track>) {
+        if (tracks.isEmpty() || deleteRunning) return
+        deleteRunning = true
+        deleteTotal = tracks.size
+        deleteDone = 0
+        deletedTrackIds.clear()
+        deleteRemaining = tracks
+        continueDelete()
+    }
+
+    private fun continueDelete() {
+        if (deleteRemaining.isEmpty()) {
+            finishDelete()
+            return
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            requestSystemDelete()
+        } else {
+            viewModelScope.launch(Dispatchers.IO) { deleteDirectly() }
+        }
+    }
+
+    /**
+     * Android 11+: el sistema muestra un dialogo de confirmacion y borra los
+     * archivos el mismo cuando el usuario acepta.
+     */
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun requestSystemDelete() {
+        val batch = deleteRemaining.take(MAX_DELETE_REQUEST_SIZE)
+        val pendingIntent = runCatching {
+            MediaStore.createDeleteRequest(appContentResolver, batch.map { it.uri })
+        }.getOrNull()
+
+        if (pendingIntent == null) {
+            // Si no se pudo crear la solicitud, intentamos borrar directamente
+            // lo que la app tenga permitido.
+            viewModelScope.launch(Dispatchers.IO) { deleteDirectly() }
+            return
+        }
+
+        _deleteRequest.value = DeleteRequest(
+            intentSender = pendingIntent.intentSender,
+            tracks = batch,
+            systemDeletes = true,
+        )
+    }
+
+    /** Android 10 y anteriores: borra directamente, pidiendo permiso si hace falta. */
+    private suspend fun deleteDirectly() {
+        val pending = deleteRemaining
+        val deletedTracks = mutableListOf<Track>()
+        var index = 0
+
+        while (index < pending.size) {
+            val track = pending[index]
+            when (val outcome = deleteOne(track)) {
+                DeleteOutcome.Deleted -> deletedTracks += track
+                is DeleteOutcome.NeedsConsent -> {
+                    withContext(Dispatchers.Main) {
+                        deleteDone += deletedTracks.size
+                        deletedTrackIds += deletedTracks.map { it.id }
+                        deleteRemaining = pending.drop(index)
+                        _deleteRequest.value = DeleteRequest(
+                            intentSender = outcome.intentSender,
+                            tracks = listOf(track),
+                            systemDeletes = false,
+                        )
+                    }
+                    return
+                }
+                DeleteOutcome.Failed -> Unit
+            }
+            index++
+        }
+
+        withContext(Dispatchers.Main) {
+            deleteDone += deletedTracks.size
+            deletedTrackIds += deletedTracks.map { it.id }
+            deleteRemaining = emptyList()
+            finishDelete()
+        }
+    }
+
+    private fun deleteOne(track: Track): DeleteOutcome =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            deleteOneWithConsent(track)
+        } else {
+            runCatching { appContentResolver.delete(track.uri, null, null) }
+                .fold(
+                    onSuccess = { count ->
+                        if (count > 0) DeleteOutcome.Deleted else DeleteOutcome.Failed
+                    },
+                    onFailure = { DeleteOutcome.Failed },
+                )
+        }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun deleteOneWithConsent(track: Track): DeleteOutcome =
+        try {
+            if (appContentResolver.delete(track.uri, null, null) > 0) {
+                DeleteOutcome.Deleted
+            } else {
+                DeleteOutcome.Failed
+            }
+        } catch (e: RecoverableSecurityException) {
+            DeleteOutcome.NeedsConsent(e.userAction.actionIntent.intentSender)
+        } catch (e: Exception) {
+            DeleteOutcome.Failed
+        }
+
+    /** La UI informa si el usuario acepto o cancelo la confirmacion del sistema. */
+    fun onDeleteRequestResult(approved: Boolean) {
+        val request = _deleteRequest.value ?: return
+        _deleteRequest.value = null
+
+        if (!approved) {
+            finishDelete(cancelled = true)
+            return
+        }
+
+        if (request.systemDeletes) {
+            // El sistema ya borro estos archivos.
+            deleteDone += request.tracks.size
+            deletedTrackIds += request.tracks.map { it.id }
+            deleteRemaining = deleteRemaining.drop(request.tracks.size)
+            continueDelete()
+        } else {
+            // Android 10: el permiso ya fue concedido; reintentamos el borrado.
+            viewModelScope.launch(Dispatchers.IO) { deleteDirectly() }
+        }
+    }
+
+    private fun finishDelete(cancelled: Boolean = false) {
+        deleteRunning = false
+        deleteRemaining = emptyList()
+        _deleteRequest.value = null
+
+        val deletedIds = deletedTrackIds.toSet()
+        if (deletedIds.isNotEmpty()) {
+            // Quita las canciones de la biblioteca de inmediato, sin esperar al escaneo.
+            _library.update { state ->
+                val tracks = state.tracks.filterNot { it.id in deletedIds }
+                state.copy(
+                    tracks = tracks,
+                    albums = buildAlbums(tracks),
+                    artists = buildArtists(tracks),
+                    tracksById = tracks.associateBy { track -> track.id },
+                )
+            }
+        }
+        // Force a fresh scan after a completed delete (and after a partial one)
+        // so an in-flight scan from before cannot restore removed songs.
+        if (!cancelled || deletedIds.isNotEmpty()) {
+            refresh(force = true)
+        }
+
+        _deleteResult.value = DeleteResult(
+            success = !cancelled && deleteDone == deleteTotal,
+            deletedCount = deleteDone,
+            total = deleteTotal,
+            cancelled = cancelled,
+        )
+    }
+
+    /** Marca el ultimo resultado como mostrado para que no se repita. */
+    fun consumeDeleteResult() {
+        _deleteResult.value = null
+    }
+
+    /** Confirmacion del sistema necesaria para borrar archivos multimedia. */
+    data class DeleteRequest(
+        val intentSender: IntentSender,
+        /** Archivos incluidos en esta confirmacion. */
+        val tracks: List<Track>,
+        /** true si el sistema borra los archivos al aprobar (Android 11+). */
+        val systemDeletes: Boolean,
+    )
+
+    /** Resultado de borrar una o varias canciones. */
+    data class DeleteResult(
+        val success: Boolean,
+        val deletedCount: Int,
+        val total: Int,
+        val cancelled: Boolean = false,
+    )
+
+    private sealed interface DeleteOutcome {
+        data object Deleted : DeleteOutcome
+        data class NeedsConsent(val intentSender: IntentSender) : DeleteOutcome
+        data object Failed : DeleteOutcome
+    }
+
+    private companion object {
+        /** Android acepta como maximo 2000 URIs por solicitud de borrado. */
+        const val MAX_DELETE_REQUEST_SIZE = 2000
     }
 
     fun renamePlaylist(playlistId: String, name: String) {

@@ -3,9 +3,16 @@
 
     <!-- Audio library -->
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
+
+    <!-- Deleting files directly is only possible up to Android 9 (API 28).
+         From Android 10 on, the system consent dialog is used instead. -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
 
     <!-- Notification with controls and background service -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />

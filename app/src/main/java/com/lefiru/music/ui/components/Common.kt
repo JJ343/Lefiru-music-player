@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Favorite
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -39,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -98,6 +101,9 @@ fun SongRow(
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit,
     onAddToPlaylist: (() -> Unit)? = null,
+    isSelected: Boolean = false,
+    onToggleSelection: (() -> Unit)? = null,
+    onDeleteTrack: (() -> Unit)? = null,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -108,6 +114,13 @@ fun SongRow(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        onToggleSelection?.let {
+            Checkbox(
+                checked = isSelected,
+                onCheckedChange = { onToggleSelection() },
+            )
+            Spacer(Modifier.width(8.dp))
+        }
         AlbumArt(uri = track.artworkUri.toString(), size = 48.dp, corner = 8.dp)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
@@ -172,9 +185,52 @@ fun SongRow(
                             onAddToPlaylist()
                         },
                     )
+                    onDeleteTrack?.let { onDelete ->
+                        DropdownMenuItem(
+                            text = { Text("Eliminar") },
+                            leadingIcon = { Icon(Icons.Rounded.DeleteOutline, contentDescription = null) },
+                            onClick = {
+                                menuExpanded = false
+                                onDelete()
+                            },
+                        )
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun SelectAllRow(
+    tracks: List<Track>,
+    selectedTrackIds: Set<Long>,
+    onToggleSelectAll: (Set<Long>) -> Unit,
+) {
+    val trackIds = remember(tracks) { tracks.mapTo(LinkedHashSet()) { it.id } }
+    val allSelected = trackIds.isNotEmpty() && selectedTrackIds.containsAll(trackIds)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(
+                value = allSelected,
+                role = Role.Checkbox,
+                onValueChange = { onToggleSelectAll(trackIds) },
+            )
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(
+            checked = allSelected,
+            onCheckedChange = null,
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = if (allSelected) "Deseleccionar todas" else "Seleccionar todas",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

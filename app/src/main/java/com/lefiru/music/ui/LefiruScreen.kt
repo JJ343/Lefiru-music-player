@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.MusicNote
@@ -53,6 +54,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import android.widget.Toast
+import android.app.Activity
+import androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.lefiru.music.data.Track
@@ -102,9 +108,55 @@ fun LefiruScreen(
     var showCreateDialog by remember { mutableStateOf(false) }
     var newPlaylistName by remember { mutableStateOf("") }
     var openPlaylistId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedTrackIds by remember { mutableStateOf(emptySet<Long>()) }
+
+    val onTrackSelected: (Long) -> Unit = { trackId ->
+        selectedTrackIds = if (selectedTrackIds.contains(trackId)) {
+            selectedTrackIds - trackId
+        } else {
+            selectedTrackIds + trackId
+        }
+    }
+    val onToggleSelectAll: (Set<Long>) -> Unit = { visibleIds ->
+        selectedTrackIds = toggleSelectAll(selectedTrackIds, visibleIds)
+    }
 
     LaunchedEffect(permissionGranted) {
         viewModel.onPermissionResult(permissionGranted)
+    }
+
+    val context = LocalContext.current
+    val deleteResult by viewModel.deleteResult.collectAsState()
+    val deleteRequest by viewModel.deleteRequest.collectAsState()
+
+    val deleteRequestLauncher = rememberLauncherForActivityResult(
+        StartIntentSenderForResult(),
+    ) { result ->
+        viewModel.onDeleteRequestResult(result.resultCode == Activity.RESULT_OK)
+    }
+
+    LaunchedEffect(deleteRequest) {
+        val request = deleteRequest ?: return@LaunchedEffect
+        deleteRequestLauncher.launch(
+            IntentSenderRequest.Builder(request.intentSender).build(),
+        )
+    }
+
+    LaunchedEffect(deleteResult) {
+        val result = deleteResult ?: return@LaunchedEffect
+        val message = when {
+            result.cancelled && result.deletedCount == 0 -> "Eliminacion cancelada"
+            result.cancelled -> "Eliminacion cancelada · ${result.deletedCount} de ${result.total} eliminadas"
+            result.success && result.total == 1 -> "Cancion eliminada"
+            result.success -> "${result.deletedCount} de ${result.total} canciones eliminadas"
+            result.deletedCount == 0 && result.total == 1 -> "No se pudo eliminar la cancion"
+            result.deletedCount == 0 -> "No se pudieron eliminar las canciones"
+            else -> "${result.deletedCount} de ${result.total} canciones eliminadas"
+        }
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        // Al cancelar se conserva la seleccion para poder reintentar.
+        if (!result.cancelled) selectedTrackIds = emptySet()
+        viewModel.consumeDeleteResult()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -145,11 +197,21 @@ fun LefiruScreen(
                                 }
                             }
                             if (selectedTab != 5) {
-                                IconButton(onClick = { viewModel.refresh() }) {
-                                    Icon(Icons.Rounded.Refresh, contentDescription = "Actualizar")
-                                }
-                                IconButton(onClick = { searchActive = true }) {
-                                    Icon(Icons.Rounded.Search, contentDescription = "Buscar")
+                                if (selectedTrackIds.isNotEmpty()) {
+                                    IconButton(onClick = {
+                                        val toDelete = library.tracksById.values
+                                            .filter { it.id in selectedTrackIds }
+                                        viewModel.deleteTracks(toDelete)
+                                    }) {
+                                        Icon(Icons.Rounded.DeleteOutline, contentDescription = "Eliminar seleccionadas")
+                                    }
+                                } else {
+                                    IconButton(onClick = { viewModel.refresh() }) {
+                                        Icon(Icons.Rounded.Refresh, contentDescription = "Actualizar")
+                                    }
+                                    IconButton(onClick = { searchActive = true }) {
+                                        Icon(Icons.Rounded.Search, contentDescription = "Buscar")
+                                    }
                                 }
                             }
                         }
@@ -217,6 +279,12 @@ fun LefiruScreen(
                             query = searchQuery,
                             currentTrackId = playback.mediaId,
                             onAddToPlaylist = { trackForPlaylist = it },
+                            selectedTrackIds = selectedTrackIds,
+                            onTrackSelected = onTrackSelected,
+                            onToggleSelectAll = onToggleSelectAll,
+                            onDeleteTrack = { track ->
+                                viewModel.deleteTracks(listOf(track))
+                            },
                         )
 
                         1 -> AlbumsTab(
@@ -243,6 +311,12 @@ fun LefiruScreen(
                             favoriteTracks = favoriteTracks,
                             currentTrackId = playback.mediaId,
                             onAddToPlaylist = { trackForPlaylist = it },
+                            selectedTrackIds = selectedTrackIds,
+                            onTrackSelected = onTrackSelected,
+                            onToggleSelectAll = onToggleSelectAll,
+                            onDeleteTrack = { track ->
+                                viewModel.deleteTracks(listOf(track))
+                            },
                         )
 
                         else -> StopwatchScreen(viewModel = viewModel)
@@ -385,7 +459,7 @@ private fun PermissionGate(onRequestPermission: () -> Unit) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Lefiru necesita permiso para leer los archivos de audio de tu telefono. No se sube nada a internet.",
+            text = "Lefiru necesita permiso para leer y eliminar los archivos de audio de tu telefono. No se sube nada a internet.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -395,4 +469,18 @@ private fun PermissionGate(onRequestPermission: () -> Unit) {
             Text("Permitir acceso")
         }
     }
+}
+
+/**
+ * Selects every track in [visibleIds], or clears the whole selection when they
+ * are already selected. Clearing removes every id, so "deseleccionar todas"
+ * also drops tracks hidden by the current search.
+ */
+private fun toggleSelectAll(
+    selected: Set<Long>,
+    visibleIds: Set<Long>,
+): Set<Long> = if (visibleIds.isNotEmpty() && selected.containsAll(visibleIds)) {
+    emptySet()
+} else {
+    selected + visibleIds
 }
