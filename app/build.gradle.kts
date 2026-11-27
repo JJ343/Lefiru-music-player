@@ -81,5 +81,7 @@ dependencies {
     // Drag and drop in lists
     implementation("sh.calvin.reorderable:reorderable:2.4.3")
 
+    testImplementation("junit:junit:4.13.2")
+
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
