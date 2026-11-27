@@ -124,10 +124,3 @@ The app has no internet access and never uploads your files to any server.
 **The equalizer says "not available"**
 - Some devices/firmware do not expose audio effects. Try with headphones connected or
   restart the app.
-
-## Suggested next steps
-
-- Folder browsing.
-- Visible, reorderable playback queue.
-- ReplayGain / volume normalization.
-- Advanced tag reading with `MediaStore` (genre, BPM, lyrics).
