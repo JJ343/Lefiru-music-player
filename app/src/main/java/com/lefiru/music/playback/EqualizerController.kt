@@ -3,8 +3,10 @@ package com.lefiru.music.playback
 import android.media.audiofx.BassBoost
 import android.media.audiofx.Equalizer
 import android.media.audiofx.LoudnessEnhancer
+import androidx.annotation.OptIn
 import androidx.compose.runtime.Immutable
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import com.lefiru.music.data.EqualizerSettings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -57,6 +59,7 @@ object EqualizerController {
     private var pendingSettings: EqualizerSettings? = null
     private var pendingVolumeBoostPercent: Int? = null
 
+    @OptIn(UnstableApi::class)
     fun attach(player: Player) {
         player.addListener(object : Player.Listener {
             override fun onAudioSessionIdChanged(audioSessionId: Int) {
