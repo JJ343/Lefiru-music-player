@@ -17,6 +17,7 @@ captures/
 *.log
 *.err
 *.hprof
+/build_output.txt
 
 # OS files
 .DS_Store
