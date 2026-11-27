@@ -1,0 +1,12 @@
+# Code owners for the Lefiru Music Player repository
+
+# Default reviewers for the entire repository
+*   @JJ343
+
+# Configuration and CI files
+.github/   @JJ343
+*.yml      @JJ343
+*.yaml     @JJ343
+
+# App source code
+app/src/   @JJ343

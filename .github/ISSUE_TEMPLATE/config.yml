@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Support and questions
+    url: https://github.com/lefiru/music-player/discussions
+    about: Use GitHub Discussions for questions about how to use the app.
+  - name: Security
+    url: mailto:opensource+security@lefiru.example
+    about: Report security vulnerabilities privately (see SECURITY.md).

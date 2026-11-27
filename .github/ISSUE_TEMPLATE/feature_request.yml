@@ -1,0 +1,42 @@
+name: Feature request
+description: Suggest a new feature for Lefiru
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea to improve Lefiru? Tell us what you would like to add or change.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature description
+      description: Explain clearly and concisely the feature you would like to see.
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation / use case
+      description: What problem does this feature solve? In what situations would you use it?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Suggested priority
+      options:
+        - Low
+        - Medium
+        - High
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Have you considered another way to solve it?

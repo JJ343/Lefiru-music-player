@@ -1,0 +1,70 @@
+name: Bug report
+description: Create a bug report to help improve Lefiru
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug in Lefiru. Please complete the following information.
+
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Example: 1.1 (code 2). Found in Settings > About.
+      placeholder: 1.1
+    validations:
+      required: true
+
+  - type: input
+    id: android-version
+    attributes:
+      label: Android version
+      description: Example: 14
+      placeholder: 14
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device model
+      description: Example: Pixel 7, Samsung Galaxy A53
+      placeholder: Pixel 7
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Tell us step by step how the bug occurs.
+      placeholder: |
+        1. Open the app
+        2. Go to ...
+        3. Tap ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happens?
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional information
+      description: Screenshots, logs, or any other relevant details.
